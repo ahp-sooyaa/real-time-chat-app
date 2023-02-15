@@ -1,11 +1,16 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, useForm, usePage } from "@inertiajs/vue3";
-import { onMounted, reactive } from "vue";
+import { Head, router, useForm, usePage } from "@inertiajs/vue3";
+import { onMounted, reactive, ref } from "vue";
+import moment from "moment";
 
-const props = defineProps({ chats: Object, sessionId: Number });
+const props = defineProps({ messages: Object, sessionId: Number });
 
-let chats = reactive(props.chats);
+let timer = ref("");
+
+let typingParticipant = ref(null);
+
+let messages = reactive(props.messages);
 
 const form = useForm({
     message: "",
@@ -19,13 +24,34 @@ const sentMessage = () => {
     });
 };
 
+const typing = () => {
+    window.Echo.private("chat.session." + props.sessionId).whisper("typing", {
+        name: usePage().props.auth.user.name,
+    });
+};
+
+function markAsRead() {
+    router.reload();
+}
+
 onMounted(() => {
-    window.Echo.private("chat.session." + props.sessionId).listen(
-        "MessageSent",
-        (e) => {
-            chats.push(e.chat);
-        }
-    );
+    window.Echo.private("chat.session." + props.sessionId)
+        .listen("MessageSent", (e) => {
+            messages.push(e.message);
+
+            markAsRead();
+        })
+        .listenForWhisper("typing", (e) => {
+            console.log(e.name);
+
+            typingParticipant.value = e.name;
+
+            if (timer.value) clearTimeout(timer.value);
+
+            timer.value = setTimeout(() => {
+                typingParticipant.value = null;
+            }, 1000);
+        });
 });
 </script>
 
@@ -42,45 +68,67 @@ onMounted(() => {
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
-                        <form @submit.prevent="submit">
-                            <input
-                                v-model="form.email"
-                                type="email"
-                                placeholder="email"
-                                class="border-gray-300 rounded-md mr-2 text-sm"
-                            />
-                            <button
-                                class="bg-gray-900 text-white px-3 py-2 rounded-md text-sm"
+                    <div class="flex flex-col p-6 text-gray-900">
+                        <div v-if="messages.length">
+                            <div
+                                v-for="(message, index) in messages"
+                                :key="index"
+                                :class="[
+                                    {
+                                        'flex flex-col items-end ml-auto':
+                                            message.sender_id ==
+                                            $page.props.auth.user.id,
+                                    },
+                                    '[&:not(:first-child)]:mt-3',
+                                ]"
                             >
-                                add contact
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                                <div
+                                    :class="[
+                                        {
+                                            'flex-row-reverse':
+                                                message.sender_id ==
+                                                $page.props.auth.user.id,
+                                        },
+                                        'flex items-center',
+                                    ]"
+                                >
+                                    <h1 class="font-bold">
+                                        {{
+                                            message.sender_id ==
+                                            $page.props.auth.user.id
+                                                ? "me"
+                                                : message.user.name
+                                        }}
+                                    </h1>
+                                    <span class="text-xs mx-2">{{
+                                        moment(message.created_at).format("LT")
+                                    }}</span>
+                                </div>
 
-                <div
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg mt-5"
-                >
-                    <div class="p-6 text-gray-900">
-                        <div
-                            v-for="chat in chats"
-                            :class="[
-                                {
-                                    'text-right':
-                                        chat.sender_id ==
-                                        $page.props.auth.user.id,
-                                },
-                            ]"
-                        >
-                            {{ chat.message }}
+                                <p
+                                    class="text-gray-700 text-sm bg-gray-100 inline-block rounded-lg px-4 py-1"
+                                >
+                                    {{ message.content }}
+                                </p>
+                            </div>
                         </div>
-                        <div class="mt-5">
-                            <form @submit.prevent="sentMessage">
+                        <div v-else class="text-center text-gray-500">
+                            No message yet
+                        </div>
+                        <div class="flex justify-between items-center mt-5">
+                            <div
+                                v-if="typingParticipant"
+                                class="text-gray-700 text-sm animate-pulse"
+                            >
+                                {{ typingParticipant }} is typing...
+                            </div>
+                            <form @submit.prevent="sentMessage" class="ml-auto">
                                 <input
+                                    v-model="form.message"
                                     type="text"
                                     placeholder="enter your message"
-                                    v-model="form.message"
+                                    class="border-gray-200 rounded-lg text-sm text-gray-500"
+                                    @keydown="typing"
                                 />
                             </form>
                         </div>

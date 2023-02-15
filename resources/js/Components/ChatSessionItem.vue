@@ -4,25 +4,51 @@ import { onMounted, ref } from "vue";
 
 const props = defineProps({ chatSession: Object });
 
-let latestMessage = ref(props.chatSession.chats[0]?.message);
+let latestMessage = ref(props.chatSession.messages[0]);
 
 onMounted(() => {
     window.Echo.private("chat.session." + props.chatSession.id).listen(
         "MessageSent",
         (e) => {
-            latestMessage.value = e.chat.message;
+            latestMessage.value = e.message;
         }
     );
 });
 </script>
 
 <template>
-    <Link :href="route('chatsession.show', props.chatSession.id)" class="block">
-        {{ props.chatSession.users[0].name }}
-        {{ props.chatSession.id }}
-        <div v-if="latestMessage">
-            <span class="text-gray-500">latest message:</span>
-            {{ latestMessage }}
+    <Link
+        :href="route('chatsession.show', props.chatSession.id)"
+        class="flex bg-gray-100 p-3 rounded-xl space-x-1"
+    >
+        <span
+            v-if="
+                !latestMessage.read_at &&
+                latestMessage.sender_id != $page.props.auth.user.id
+            "
+            class="relative flex h-2 w-2 mt-2"
+        >
+            <span
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"
+            ></span>
+            <span
+                class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"
+            ></span>
+        </span>
+        <div class="flex-1">
+            <div class="flex justify-between items-start">
+                <h1 class="text-gray-900 font-semibold">
+                    {{ props.chatSession.users[0].name }}
+                </h1>
+                <span
+                    class="bg-gray-900 rounded-full text-xs text-white px-2 py-0.5"
+                    >{{ props.chatSession.messages_count }}</span
+                >
+            </div>
+            <div v-if="latestMessage" class="text-gray-500 text-sm">
+                {{ latestMessage?.content }}
+            </div>
+            <div v-else class="text-gray-500 text-sm">No message yet!</div>
         </div>
     </Link>
 </template>

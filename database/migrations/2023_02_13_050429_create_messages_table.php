@@ -13,12 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('chats', function (Blueprint $table) {
+        Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('sender_id')->constrained('users');
             $table->foreignId('chat_session_id')->constrained();
-            $table->string('message');
-            $table->timestamp('read_at');
+            $table->string('content');
+            $table->timestamp('read_at')->nullable();
             $table->timestamps();
         });
     }

@@ -19,7 +19,7 @@ class MessageSent implements ShouldBroadcast
      *
      * @return void
      */
-    public function __construct(public $chat)
+    public function __construct(public $message)
     {
         //
     }
@@ -31,6 +31,6 @@ class MessageSent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('chat.session.' . $this->chat->chat_session_id);
+        return new PrivateChannel('chat.session.' . $this->message->chat_session_id);
     }
 }

@@ -14,8 +14,8 @@ class ChatSession extends Model
         return $this->belongsToMany(User::class, 'participants');
     }
 
-    public function chats()
+    public function messages()
     {
-        return $this->hasMany(Chat::class);
+        return $this->hasMany(Message::class);
     }
 }
