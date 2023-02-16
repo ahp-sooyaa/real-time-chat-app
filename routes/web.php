@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ChatSessionController;
+use App\Http\Controllers\ChatSessionMemberController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -42,6 +43,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/chat-session', [ChatSessionController::class, 'store'])->name('chatsession.store');
     Route::get('/chat-session/{chatSession}', [ChatSessionController::class, 'show'])->name('chatsession.show');
     Route::post('/message', [MessageController::class, 'store'])->name('message.store');
+
+    Route::post('/chat-session/members', [ChatSessionMemberController::class, 'store'])->name('chatsession.member.store');
 });
 
 require __DIR__ . '/auth.php';

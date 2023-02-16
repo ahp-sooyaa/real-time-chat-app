@@ -9,9 +9,16 @@ class ChatSession extends Model
 {
     use HasFactory;
 
+    public $guarded = [];
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'creator_id');
+    }
+
     public function users()
     {
-        return $this->belongsToMany(User::class, 'participants');
+        return $this->belongsToMany(User::class, 'participants')->withTimestamps();
     }
 
     public function messages()

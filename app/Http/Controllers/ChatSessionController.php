@@ -25,21 +25,31 @@ class ChatSessionController extends Controller
 
         return Inertia::render('ChatSession', [
             'messages' => $messages,
-            'sessionId' => $chatSession->id,
+            'chatSession' => $chatSession->load(['creator', 'users']),
         ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'email' => ['required', 'email', 'exists:users'],
-        ]);
+        if ($request->type == 'normal') {
+            $request->validate([
+                'email' => ['required', 'email', 'exists:users'],
+            ]);
 
-        $user = User::where('email', $request->email)->first();
+            $user = User::where('email', $request->email)->first();
 
-        $chat_session = ChatSession::create();
+            $chat_session = ChatSession::create(['creator_id' => Auth::id(), 'type' => $request->type]);
 
-        $chat_session->users()->attach([$user->id, Auth::id()]);
+            $chat_session->users()->attach([$user->id, Auth::id()]);
+        } else {
+            $request->validate([
+                'name' => ['required', 'string'],
+            ]);
+
+            $chat_session = ChatSession::create(['creator_id' => Auth::id(), 'name' => $request->name, 'type' => $request->type, 'active_at' => now()]);
+
+            $chat_session->users()->attach(Auth::id());
+        }
 
         return Redirect::back()->with('success', 'Contact added!');
     }

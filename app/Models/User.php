@@ -43,9 +43,15 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    // this relationship is not require
+    // public function chatSession()
+    // {
+    //     return $this->hasMany(ChatSession::class);
+    // }
+
     public function chatSessions()
     {
-        return $this->belongsToMany(ChatSession::class, 'participants');
+        return $this->belongsToMany(ChatSession::class, 'participants')->withTimestamps();
     }
 
     public function loadChatSessions()
@@ -66,6 +72,7 @@ class User extends Authenticatable
                 $query->where('read_at', null)->where('sender_id', '!=', $this->id);
             }
         ]);
+        // dd($chat_sessions);
 
         return $chat_sessions;
     }

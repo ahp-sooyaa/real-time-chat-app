@@ -31,6 +31,6 @@ class MessageSent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('chat.session.' . $this->message->chat_session_id);
+        return new PresenceChannel('chat.session.' . $this->message->chat_session_id);
     }
 }

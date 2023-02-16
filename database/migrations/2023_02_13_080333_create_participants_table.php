@@ -17,6 +17,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained();
             $table->foreignId('chat_session_id')->constrained();
+            $table->string('nickname')->nullable(); // you can set your nickname, other people can give you a nickname
+            // $table->string('state'); // pending state (you can add contact but it will be still in pending state until other peer accept to reply), active state (other peer reply back), banned state (other peer don't want to receive message from you)
             $table->timestamps();
         });
     }
