@@ -5,12 +5,14 @@ import { onMounted, onUnmounted, ref } from "vue";
 const props = defineProps({ chatSession: Object });
 
 let latestMessage = ref(props.chatSession.messages[0]);
+let newMessageCount = ref(props.chatSession.messages_count);
 
 onMounted(() => {
     window.Echo.join("chat.session." + props.chatSession.id).listen(
         "MessageSent",
         (e) => {
             latestMessage.value = e.message;
+            newMessageCount.value++;
         }
     );
 });
@@ -52,7 +54,7 @@ onUnmounted(() => {
                     </h1>
                     <span
                         class="bg-gray-900 rounded-full text-xs text-white px-2 py-0.5"
-                        >{{ props.chatSession.messages_count }}</span
+                        >{{ newMessageCount }}</span
                     >
                 </div>
                 <div v-if="latestMessage" class="text-gray-500 text-sm">

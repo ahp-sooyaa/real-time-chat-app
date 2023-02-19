@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Notifications\Notifiable;
@@ -49,9 +50,16 @@ class User extends Authenticatable
     //     return $this->hasMany(ChatSession::class);
     // }
 
+    protected static function booted()
+    {
+        static::addGlobalScope('nickname', function (Builder $builder) {
+            $builder->addSelect(['nickname' => Participant::select('nickname')->whereColumn('users.id', 'participants.user_id')->take(1)]);
+        });
+    }
+
     public function chatSessions()
     {
-        return $this->belongsToMany(ChatSession::class, 'participants')->withTimestamps();
+        return $this->belongsToMany(ChatSession::class, 'participants')->withPivot('nickname')->withTimestamps();
     }
 
     public function loadChatSessions()

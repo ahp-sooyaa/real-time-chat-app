@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('sender_id')->constrained('users');
             $table->foreignId('chat_session_id')->constrained();
             $table->string('content');
+            $table->string('sent_by')->default('user');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
         });

@@ -45,6 +45,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/message', [MessageController::class, 'store'])->name('message.store');
 
     Route::post('/chat-session/members', [ChatSessionMemberController::class, 'store'])->name('chatsession.member.store');
+    Route::delete('/chat-session/{chatSession}/members/{member}', [ChatSessionMemberController::class, 'destroy'])->name('chatsession.member.destroy');
+    Route::patch('/chat-session/{chatSession}/member/{member}', [ChatSessionMemberController::class, 'update'])->name('chatsession.member.update');
+    
+    Route::get('/chat-session/{chatSession}/setting', [ChatSessionController::class, 'edit'])->name('chatsession.setting.edit');
+    Route::patch('/chat-session/{chatSession}/setting', [ChatSessionController::class, 'update'])->name('chatsession.setting.update');
 });
 
 require __DIR__ . '/auth.php';
