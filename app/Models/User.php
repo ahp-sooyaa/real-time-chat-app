@@ -3,9 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Builder;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -44,18 +42,15 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    // this relationship is not require
-    // public function chatSession()
-    // {
-    //     return $this->hasMany(ChatSession::class);
-    // }
-
-    // protected static function booted()
-    // {
-    //     static::addGlobalScope('nickname', function (Builder $builder) {
-    //         $builder->addSelect(['nickname' => Participant::select('nickname')->whereColumn('users.id', 'participants.user_id')->take(1)]);
-    //     });
-    // }
+    /**
+     * Get the qrCode associated with the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function qrCode()
+    {
+        return $this->hasOne(Qrcode::class);
+    }
 
     public function chatSessions()
     {
@@ -80,7 +75,6 @@ class User extends Authenticatable
                 $query->where('read_at', null)->where('sender_id', '!=', $this->id);
             }
         ]);
-        // dd($chatSessions);
 
         return $chatSessions;
     }

@@ -19,11 +19,21 @@ class QrCode extends Model
 
     public $guarded = [];
 
+    /**
+     * Get the user that owns the QrCode
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public static function generateFor($user)
     {
         // generate token and link for qr code
         $token = Str::random();
-        $link = route('friend.add', ['email' => $user->email, 'token' => $token]);
+        $link = route('friend.add', [$user->id, $token]);
 
         // generate qr code with link
         $qrCode = EndroidQrCode::create($link)
@@ -51,9 +61,9 @@ class QrCode extends Model
 
         // record generated qr code and link in database
         QrCode::create([
-            'email' => $user->email,
-            'image_path' => $imagePath,
+            'user_id' => $user->id,
             'link' => urldecode($link),
+            'image_path' => $imagePath,
             'token' => $token,
         ]);
     }

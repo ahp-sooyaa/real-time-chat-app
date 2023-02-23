@@ -7,7 +7,6 @@ use App\Models\ChatSession;
 use App\Models\Message;
 use App\Models\Participant;
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 
@@ -31,9 +30,6 @@ class ChatSessionController extends Controller
     {
         abort_if(!$chatSession->users->contains(Auth::id()), 404);
 
-        // $messages = $chatSession->messages;
-
-        // $messages->load('user');
         $messages = Message::query()
             ->where('chat_session_id', $chatSession->id)
             ->addSelect([
@@ -58,6 +54,10 @@ class ChatSessionController extends Controller
 
     public function store(Request $request)
     {
+        // this method will have 3 conditions
+        // 1. creating group chat
+        // 2. adding friend with qr code
+        // 3. adding friend via search feature
         if ($request->type == 'group') {
             $request->validate([
                 'name' => ['required', 'string'],
@@ -68,12 +68,13 @@ class ChatSessionController extends Controller
             return Redirect::back()->with('success', 'Group created!');
         }
 
+        // token shouldn't require if user add friend from search feature (otherwise I need to pass token when display user in search result)
         $request->validate([
-            'email' => 'required|email|exists:users',
-            'token' => 'required',
+            'id' => 'required|exists:users',
+            'token' => 'required', // need to use something like required if rule (require if user turn off allow other to add me as friend)
         ]);
 
-        ChatSession::createAsNormal($request->email, $request->token);
+        ChatSession::createAsNormal($request->id, $request->token);
 
         return Redirect::back()->with('success', 'Contact added!');
     }

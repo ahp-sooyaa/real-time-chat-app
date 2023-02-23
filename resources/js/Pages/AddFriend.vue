@@ -2,10 +2,10 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { useForm } from "@inertiajs/vue3";
 
-const props = defineProps({ user: Object, email: String, token: String });
+const props = defineProps({ user: Object, token: String });
 
 const form = useForm({
-    email: props.email,
+    id: props.user.id,
     token: props.token,
 });
 

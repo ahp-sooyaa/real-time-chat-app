@@ -15,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('qr_codes', function (Blueprint $table) {
             $table->id();
-            $table->string('email');
+            $table->foreignId('user_id')->constrained();
+            $table->string('link');
             $table->string('image_path');
             $table->string('token');
             $table->timestamps();

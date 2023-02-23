@@ -30,24 +30,23 @@ class ChatSession extends Model
 
     public static function createAsGroup($name, $users)
     {
-        $chatSession = ChatSession::create([
+        $groupChat = ChatSession::create([
             'creator_id' => Auth::id(),
             'name' => $name,
             'type' => 'group',
             'active_at' => now()
         ]);
 
-        $userIds = collect($users)->pluck('id')->merge(Auth::id());
-        $chatSession->users()->attach($userIds);
+        $memberIds = collect($users)->pluck('id')->merge(Auth::id());
 
-        // NewChatSessionCreated::dispatch($chatSession);
+        $groupChat->users()->attach($memberIds);
     }
 
-    public static function createAsNormal($email, $token)
+    public static function createAsNormal($userId, $token)
     {
-        if (QrCode::where('email', $email)->value('token') == $token) {
-            $user = User::where('email', $email)->first();
+        $user = User::find($userId);
 
+        if ($user->qrCode->token == $token) { // this condition seem like duplicate because it is already done in chatsessionmembercontroller
             $chatSession = ChatSession::create(['creator_id' => Auth::id(), 'type' => 'normal']);
 
             $chatSession->users()->attach([$user->id, Auth::id()]);
@@ -69,7 +68,7 @@ class ChatSession extends Model
 
             NewChatSessionCreated::dispatch($chatSession);
         } else {
-            return back()->withErrors('your token mismatch');
+            return back()->withErrors('Your token mismatch');
         }
     }
 }

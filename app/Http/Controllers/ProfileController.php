@@ -20,7 +20,7 @@ class ProfileController extends Controller
     public function edit(Request $request): Response
     {
         return Inertia::render('Profile/Edit', [
-            'qrCode' => QrCode::where('email', $request->user()->email)->first(),
+            'qrCode' => $request->user()->qrCode,
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
         ]);

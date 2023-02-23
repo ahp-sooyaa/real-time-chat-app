@@ -76,18 +76,15 @@ class ChatSessionMemberController extends Controller
         return Redirect::route('dashboard');
     }
 
-    public function addFriendWithQrCodeOrLink(Request $request)
+    public function addFriendWithQrCodeOrLink(User $user, $token)
     {
-        if ($request->token != QrCode::where('email', $request->email)->value('token')) {
+        if ($token != $user->qrCode->token) {
             return redirect('/chats')->withErrors('Your qr code doesn\'t correct.');
         }
 
-        $user = User::where('email', $request->email)->first();
-
         return Inertia::render('AddFriend', [
             'user' => $user,
-            'email' => $request->email,
-            'token' => $request->token,
+            'token' => $token,
         ]);
     }
 }
