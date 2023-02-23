@@ -50,12 +50,12 @@ class User extends Authenticatable
     //     return $this->hasMany(ChatSession::class);
     // }
 
-    protected static function booted()
-    {
-        static::addGlobalScope('nickname', function (Builder $builder) {
-            $builder->addSelect(['nickname' => Participant::select('nickname')->whereColumn('users.id', 'participants.user_id')->take(1)]);
-        });
-    }
+    // protected static function booted()
+    // {
+    //     static::addGlobalScope('nickname', function (Builder $builder) {
+    //         $builder->addSelect(['nickname' => Participant::select('nickname')->whereColumn('users.id', 'participants.user_id')->take(1)]);
+    //     });
+    // }
 
     public function chatSessions()
     {
@@ -64,9 +64,9 @@ class User extends Authenticatable
 
     public function loadChatSessions()
     {
-        $chat_sessions = $this->chatSessions;
+        $chatSessions = $this->chatSessions;
 
-        $chat_sessions->load([
+        $chatSessions->load([
             'users' => function ($query) {
                 $query->where('name', '!=', $this->name);
             },
@@ -75,13 +75,13 @@ class User extends Authenticatable
             }
         ]);
 
-        $chat_sessions->loadCount([
+        $chatSessions->loadCount([
             'messages' => function ($query) {
                 $query->where('read_at', null)->where('sender_id', '!=', $this->id);
             }
         ]);
-        // dd($chat_sessions);
+        // dd($chatSessions);
 
-        return $chat_sessions;
+        return $chatSessions;
     }
 }

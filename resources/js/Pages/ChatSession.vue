@@ -28,7 +28,7 @@ const messageForm = useForm({
 });
 
 const sentMessage = () => {
-    if (loading.value) return;
+    if (loading.value || !messageForm.message) return;
 
     messages.push({
         sender_id: usePage().props.auth.user.id,
@@ -61,7 +61,7 @@ const addMember = () => {
 };
 
 const typing = throttle(() => {
-    window.Echo.join("chat.session." + props.chatSession.id).whisper("typing", {
+    window.Echo.join("chatsession." + props.chatSession.id).whisper("typing", {
         name: usePage().props.auth.user.name,
     });
 }, 1000);
@@ -74,14 +74,14 @@ function markAsRead() {
 
 onMounted(() => {
     // props.chatSession.users.forEach(user => {
-    //     window.Echo.private('chat.session.' + props.chatSession.id)
+    //     window.Echo.private('chatsession.' + props.chatSession.id)
     //         .listen('LeaveChatSession', e => {
     //             console.log('called');
     //             // props.chatSession.users.splice(props.chatSession.users.indexOf(e.user), 1)
     //         })
     // });
 
-    window.Echo.join("chat.session." + props.chatSession.id)
+    window.Echo.join("chatsession." + props.chatSession.id)
         .here((users) => {
             console.log(
                 "all users: " + users.map((user) => user.name).join(", ")
@@ -89,11 +89,9 @@ onMounted(() => {
             activeParticipants.value = users;
         })
         .joining((user) => {
-            console.log("joining " + user.name);
             activeParticipants.value.push({ name: user.name });
         })
         .leaving((user) => {
-            console.log("leaving " + user.name);
             activeParticipants.value.splice(
                 activeParticipants.value.indexOf(user),
                 1
@@ -128,20 +126,20 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    window.Echo.leave("chat.session." + props.chatSession.id);
+    window.Echo.leave("chatsession." + props.chatSession.id);
 });
 
 const chatSessionName = computed(() => {
     if (props.chatSession.type == "group") {
-        return props.chatSession.name
+        return props.chatSession.name;
     }
 
     let otherParticipant = props.chatSession.users.find(
         (user) => user.name != usePage().props.auth.user.name
-    )
+    );
 
-    return otherParticipant.nickname ?? otherParticipant.name
-})
+    return otherParticipant.nickname ?? otherParticipant.name;
+});
 </script>
 
 <template>
@@ -202,7 +200,11 @@ const chatSessionName = computed(() => {
                                         $page.props.auth.user.id,
                                     ])
                                 "
-                                :data="{ action: $page.props.auth.user.name + ' leaved from group' }"
+                                :data="{
+                                    action:
+                                        $page.props.auth.user.name +
+                                        ' leaved from group',
+                                }"
                                 method="delete"
                                 as="button"
                             >
@@ -210,6 +212,23 @@ const chatSessionName = computed(() => {
                             </DropdownLink>
                         </template>
                     </Dropdown>
+                </div>
+                <div
+                    v-show="
+                        $page.props.flash.success_message ||
+                        $page.props.flash.error_message
+                    "
+                    class="absolute bottom-10 right-10 bg-white shadow px-5 py-3 text-sm rounded-lg"
+                    :class="
+                        $page.props.flash.success_message
+                            ? 'text-green-500'
+                            : 'text-red-500'
+                    "
+                >
+                    {{
+                        $page.props.flash.success_message ??
+                        $page.props.flash.error_message
+                    }}
                 </div>
                 <form @submit.prevent="addMember" class="ml-auto">
                     <input
@@ -241,7 +260,7 @@ const chatSessionName = computed(() => {
                     v-if="chatSession.type == 'group'"
                     class="bg-white overflow-hidden shadow-sm sm:rounded-lg mt-3 p-6"
                 >
-                    <h1 class="text-gray-900">All members</h1>
+                    <h1 class="text-gray-900">Group members</h1>
                     <div
                         v-for="participant in chatSession.users"
                         class="text-gray-700 text-sm"
@@ -256,20 +275,10 @@ const chatSessionName = computed(() => {
                             "
                             class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1"
                         ></span
-                        >{{ participant.nickname ?? participant.name }}
+                        >{{ participant.pivot.nickname ?? participant.name }}
                     </div>
                 </div>
-                <!-- <div
-                        v-if="chatSession.type == 'group'"
-                        class="flex justify-between items-end"
-                    >
-                        group members:
-                        {{
-                            chatSession.users
-                                .map((user) => user.name)
-                                .join(", ")
-                        }}
-                    </div> -->
+
                 <div
                     class="flex-1 bg-white overflow-hidden shadow-sm sm:rounded-lg mt-3"
                 >
@@ -303,9 +312,9 @@ const chatSessionName = computed(() => {
                                                 message.sender_id ==
                                                 $page.props.auth.user.id
                                                     ? "me"
-                                                    : message.user.nickname??message.user.name
+                                                    : message.nickname ??
+                                                      message.user.name
                                             }}
-                                            <!-- {{ message }} -->
                                         </h1>
                                         <span class="text-xs mx-2">{{
                                             moment(message.created_at).format(
@@ -314,11 +323,28 @@ const chatSessionName = computed(() => {
                                         }}</span>
                                     </div>
 
-                                    <p
-                                        class="text-gray-700 text-sm bg-gray-100 inline-block rounded-lg px-4 py-1"
-                                    >
-                                        {{ message.content }}
-                                    </p>
+                                    <div class="flex items-center">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="w-5 h-5 text-gray-700 hover:text-gray-900 cursor-pointer"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z"
+                                            />
+                                        </svg>
+
+                                        <p
+                                            class="text-gray-700 text-sm bg-gray-100 inline-block rounded-lg px-4 py-1"
+                                        >
+                                            {{ message.content }}
+                                        </p>
+                                    </div>
                                 </div>
                                 <div
                                     v-else
@@ -349,32 +375,43 @@ const chatSessionName = computed(() => {
                             (both of you will become friend if you reply)
                         </div>
                         <div
-                            class="flex justify-between items-center mt-5 -mx-6 -mb-6 border-t bg-gray-50 px-6 py-3"
+                            v-if="typingParticipants.length"
+                            class="text-gray-700 text-sm animate-pulse mt-6"
                         >
-                            <div
-                                v-if="typingParticipants.length"
-                                class="text-gray-700 text-sm animate-pulse"
-                            >
-                                <!-- <span
-                                    v-for="typingParticipant in typingParticipants"
-                                >
-                                    {{ typingParticipant }}
-                                </span> -->
-                                {{ typingParticipants.join(", ") }}
-                                {{
-                                    typingParticipants.length > 1 ? "are" : "is"
-                                }}
-                                typing...
-                            </div>
+                            {{ typingParticipants.join(", ") }}
+                            {{ typingParticipants.length > 1 ? "are" : "is" }}
+                            typing...
+                        </div>
+                        <div class="mt-6 border-t pt-3">
                             <form @submit.prevent="sentMessage" class="ml-auto">
                                 <input
                                     v-model="messageForm.message"
                                     type="text"
-                                    placeholder="enter your message"
-                                    class="border-gray-200 rounded-lg text-sm text-gray-500"
+                                    placeholder="Type something..."
+                                    class="border-transparent rounded-lg text-sm text-gray-500 -mt-3 focus:border-transparent focus:ring-0 px-0 w-full"
                                     @keydown="typing"
                                     autofocus
                                 />
+                                <button
+                                    class="flex items-center ml-auto bg-gray-900 text-white text-sm px-5 py-2 rounded"
+                                    type="submit"
+                                >
+                                    Sent
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="w-4 h-4 ml-1 -mr-1"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+                                        />
+                                    </svg>
+                                </button>
                             </form>
                         </div>
                     </div>

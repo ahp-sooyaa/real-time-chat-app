@@ -13,13 +13,15 @@ use Illuminate\Support\Facades\Redirect;
 
 class ChatSessionController extends Controller
 {
-    public function edit(ChatSession $chatSession) {
+    public function edit(ChatSession $chatSession)
+    {
         return Inertia::render('Setting/Edit', [
             'chatSession' => $chatSession->load('users'),
         ]);
     }
-    
-    public function update(ChatSession $chatSession, Request $request) {
+
+    public function update(ChatSession $chatSession, Request $request)
+    {
         $chatSession->update([
             'name' => $request->name,
         ]);
@@ -29,18 +31,19 @@ class ChatSessionController extends Controller
     {
         abort_if(!$chatSession->users->contains(Auth::id()), 404);
 
-        $messages = $chatSession->messages;
+        // $messages = $chatSession->messages;
 
-        $messages->load('user');
-        // $messages = Message::query()
-        //     ->where('chat_session_id', $chatSession->id)
-        //     ->addSelect([
-        //     'nickname' => Participant::select('nickname')
-        //         ->whereColumn('messages.sender_id', 'participants.user_id')
-        //         ->take(1)
-        //     ])
-        //     ->with('user')
-        //     ->get();
+        // $messages->load('user');
+        $messages = Message::query()
+            ->where('chat_session_id', $chatSession->id)
+            ->addSelect([
+                'nickname' => Participant::select('nickname')
+                    ->whereColumn('user_id', 'messages.sender_id')
+                    ->where('chat_session_id', $chatSession->id)
+                    ->take(1)
+            ])
+            ->with('user')
+            ->get();
 
         Message::query()
             ->where('chat_session_id', $chatSession->id)
@@ -55,22 +58,23 @@ class ChatSessionController extends Controller
 
     public function store(Request $request)
     {
-        if ($request->type == 'normal') {
+        if ($request->type == 'group') {
             $request->validate([
-                'email' => ['required', 'email', 'exists:users'],
+                'name' => ['required', 'string'],
             ]);
 
-            ChatSession::createAsNormal($request->email);
+            ChatSession::createAsGroup($request->name, $request->users);
 
-            return Redirect::back()->with('success', 'Contact added!');
+            return Redirect::back()->with('success', 'Group created!');
         }
 
         $request->validate([
-            'name' => ['required', 'string'],
+            'email' => 'required|email|exists:users',
+            'token' => 'required',
         ]);
 
-        ChatSession::createAsGroup($request->name);
+        ChatSession::createAsNormal($request->email, $request->token);
 
-        return Redirect::back()->with('success', 'Group created!');
+        return Redirect::back()->with('success', 'Contact added!');
     }
 }

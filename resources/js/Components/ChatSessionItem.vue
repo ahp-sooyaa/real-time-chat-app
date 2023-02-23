@@ -8,7 +8,7 @@ let latestMessage = ref(props.chatSession.messages[0]);
 let newMessageCount = ref(props.chatSession.messages_count);
 
 onMounted(() => {
-    window.Echo.join("chat.session." + props.chatSession.id).listen(
+    window.Echo.join("chatsession." + props.chatSession.id).listen(
         "MessageSent",
         (e) => {
             latestMessage.value = e.message;
@@ -18,13 +18,13 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    window.Echo.leave("chat.session." + props.chatSession.id);
+    window.Echo.leave("chatsession." + props.chatSession.id);
 });
 </script>
 
 <template>
     <Link
-        :href="route('chatsession.show', props.chatSession.id)"
+        :href="route('chatsession.show', chatSession.id)"
         class="block bg-gray-100 p-3 rounded-xl"
     >
         <div class="flex space-x-1">
@@ -47,15 +47,16 @@ onUnmounted(() => {
                 <div class="flex justify-between items-start">
                     <h1 class="text-gray-900 font-semibold">
                         {{
-                            props.chatSession.type == "group"
-                                ? props.chatSession.name
-                                : props.chatSession.users[0].name
+                            chatSession.type == "group"
+                                ? chatSession.name
+                                : chatSession.users[0].name
                         }}
                     </h1>
                     <span
                         class="bg-gray-900 rounded-full text-xs text-white px-2 py-0.5"
-                        >{{ newMessageCount }}</span
                     >
+                        {{ newMessageCount ?? "0" }}
+                    </span>
                 </div>
                 <div v-if="latestMessage" class="text-gray-500 text-sm">
                     {{ latestMessage?.content }}

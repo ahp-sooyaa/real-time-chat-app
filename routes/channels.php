@@ -15,10 +15,7 @@ use Illuminate\Support\Facades\Log;
 |
 */
 
-// Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-//     return (int) $user->id === (int) $id;
-// });
-Broadcast::channel('chat.session.{id}', function ($user, $id) {
+Broadcast::channel('chatsession.{id}', function ($user, $id) {
     if (ChatSession::find($id)->users->contains($user->id)) {
         return ['name' => $user->name];
     }

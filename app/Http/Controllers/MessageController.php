@@ -12,6 +12,10 @@ class MessageController extends Controller
 {
     public function store(Request $request)
     {
+        $request->validate([
+            'message' => 'required|string'
+        ]);
+
         $message = Message::create([
             'sender_id' => Auth::id(),
             'chat_session_id' => $request->chatSessionId,
