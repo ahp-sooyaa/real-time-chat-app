@@ -22,12 +22,6 @@ class MessageController extends Controller
             'content' => $request->message
         ]);
 
-        $chatSession = ChatSession::find($request->chatSessionId);
-
-        if (Auth::id() != $chatSession->creator_id) {
-            $chatSession->update(['active_at' => now()]);
-        }
-
         MessageSent::dispatch($message->load('user'));
     }
 }

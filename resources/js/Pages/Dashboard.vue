@@ -11,19 +11,7 @@ import PrimaryButton from "@/Components/PrimaryButton.vue";
 import Modal from "@/Components/Modal.vue";
 import MultiSelectUser from "@/Components/MultiSelectUser.vue";
 
-const props = defineProps({ chatSessions: Object, errors: Object });
-
-// const contactForm = useForm({
-//     email: "",
-//     token: "",
-//     type: "normal",
-// });
-
-// const addContact = () => {
-//     contactForm.post(route("chatsession.store"), {
-//         onSuccess: () => contactForm.reset("email"),
-//     });
-// };
+const props = defineProps({ chatSessions: Object });
 
 const showingCreateGroupForm = ref(false);
 const groupMembers = ref([]);
@@ -37,29 +25,27 @@ const closeModal = () => {
     groupMembers.value = [];
 };
 
-const groupForm = useForm({
+const form = useForm({
     name: "",
     users: groupMembers,
-    type: "group",
+    is_group: true,
 });
 
 const createGroup = () => {
-    groupForm.post(route("chatsession.store"), {
+    form.post(route("chatsession.store"), {
         onSuccess: () => {
-            groupForm.reset();
+            form.reset();
 
             closeModal();
         },
     });
 };
 
-function chatSessionsFilter(sessionType, isActive) {
+const chatSessionsList = (isGroup) => {
     return props.chatSessions.filter(
-        (chatSession) =>
-            !!chatSession.active_at == isActive &&
-            chatSession.type == sessionType
+        (chatSession) => chatSession.is_group == isGroup
     );
-}
+};
 
 onMounted(() => {
     window.Echo.channel("chatsession.created").listen(
@@ -76,47 +62,9 @@ onMounted(() => {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex justify-between">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Chats
-                </h2>
-                <!-- <form @submit.prevent="addContact" class="flex">
-                    {{ props.errors }}
-                    <div>
-                        <input
-                            v-model="contactForm.email"
-                            type="email"
-                            placeholder="email"
-                            class="border-gray-300 rounded-md mr-2 text-sm"
-                        />
-                        <div
-                            v-if="props.errors.email"
-                            class="text-sm mt-1 text-red-600"
-                        >
-                            {{ props.errors.email }}
-                        </div>
-                    </div>
-                    <div>
-                        <input
-                            v-model="contactForm.token"
-                            type="text"
-                            placeholder="token"
-                            class="border-gray-300 rounded-md mr-2 text-sm"
-                        />
-                        <div
-                            v-if="props.errors.email"
-                            class="text-sm mt-1 text-red-600"
-                        >
-                            {{ props.errors.token }}
-                        </div>
-                    </div>
-                    <button
-                        class="bg-gray-900 text-white px-3 py-2 rounded-md text-sm"
-                    >
-                        add contact
-                    </button>
-                </form> -->
-            </div>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                Chats
+            </h2>
         </template>
 
         <div class="py-12">
@@ -192,14 +140,14 @@ onMounted(() => {
                                         <TextInput
                                             id="name"
                                             ref="groupNameInput"
-                                            v-model="groupForm.name"
+                                            v-model="form.name"
                                             type="text"
                                             class="relative z-20 mt-1 block w-3/4"
                                             placeholder="Group Name"
                                         />
 
                                         <InputError
-                                            :message="groupForm.errors.name"
+                                            :message="form.errors.name"
                                             class="mt-2"
                                         />
                                     </div>
@@ -219,10 +167,9 @@ onMounted(() => {
                                         <PrimaryButton
                                             class="relative z-20 ml-3"
                                             :class="{
-                                                'opacity-25':
-                                                    groupForm.processing,
+                                                'opacity-25': form.processing,
                                             }"
-                                            :disabled="groupForm.processing"
+                                            :disabled="form.processing"
                                             @click="createGroup"
                                         >
                                             Create Group
@@ -232,16 +179,14 @@ onMounted(() => {
                             </Modal>
                         </div>
                         <div
-                            v-if="chatSessionsFilter('group', true).length"
+                            v-if="chatSessionsList(true).length"
                             class="space-y-3"
                         >
                             <ChatSessionItem
-                                v-for="chatSession in chatSessionsFilter(
-                                    'group',
-                                    true
-                                )"
+                                v-for="chatSession in chatSessionsList(true)"
                                 :chatSession="chatSession"
-                            ></ChatSessionItem>
+                            >
+                            </ChatSessionItem>
                         </div>
                         <div v-else class="text-sm text-gray-500">
                             Your groups will appear here.
@@ -271,58 +216,17 @@ onMounted(() => {
                             Friends
                         </h1>
                         <div
-                            v-if="chatSessionsFilter('normal', true).length"
+                            v-if="chatSessionsList(false).length"
                             class="space-y-3"
                         >
                             <ChatSessionItem
-                                v-for="chatSession in chatSessionsFilter(
-                                    'normal',
-                                    true
-                                )"
+                                v-for="chatSession in chatSessionsList(false)"
                                 :chatSession="chatSession"
-                            ></ChatSessionItem>
+                            >
+                            </ChatSessionItem>
                         </div>
                         <div v-else class="text-sm text-gray-500">
                             Your friend contact will appear here.
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
-                        <h1
-                            class="flex items-center text-gray-700 mb-3 font-bold tracking-wider"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                                class="w-6 h-6 mr-1"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-                                />
-                            </svg>
-
-                            Unknown people
-                        </h1>
-                        <div
-                            v-if="chatSessionsFilter('normal', false).length"
-                            class="space-y-3"
-                        >
-                            <ChatSessionItem
-                                v-for="chatSession in chatSessionsFilter(
-                                    'normal',
-                                    false
-                                )"
-                                :chatSession="chatSession"
-                            ></ChatSessionItem>
-                        </div>
-                        <div v-else class="text-sm text-gray-500">
-                            Please add contact to start chat.
                         </div>
                     </div>
                 </div>

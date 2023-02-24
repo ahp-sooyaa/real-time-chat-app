@@ -11,7 +11,7 @@ class UserController extends Controller
     {
         $users = User::query()
             ->whereHas('chatSessions', function ($query) {
-                return $query->where('type', 'normal');
+                return $query->where('is_group', false);
             })
             ->where('id', '!=', Auth::id())
             ->when(request('search'), function ($query, $search) {

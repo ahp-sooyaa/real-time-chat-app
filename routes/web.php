@@ -10,6 +10,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChatSessionController;
 use App\Http\Controllers\ChatSessionMemberController;
 use App\Http\Controllers\UserController;
+use App\Http\Resources\ChatSessionResource;
+use App\Models\ChatSession;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,8 +34,20 @@ Route::get('/', function () {
 });
 
 Route::get('/chats', function () {
+    // dd(
+    //     Auth::user()->chatSessions()
+    //         ->with('messages')
+    //         ->get()
+    //         // ->toArray()
+    //         ->map
+    //         ->only('name', 'messages')
+    // );
     return Inertia::render('Dashboard', [
-        'chatSessions' => Auth::user()->loadChatSessions()
+        'chatSessions' => ChatSessionResource::collection(Auth::user()->chatSessions)
+        // 'chatSessions' => Auth::user()->chatSessions()
+        //     ->with('messages')
+        //     ->get()
+        // 'chatSessions' => Auth::user()->loadChatSessions()
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 

@@ -66,7 +66,7 @@ class User extends Authenticatable
                 $query->where('name', '!=', $this->name);
             },
             'messages' => function ($query) {
-                $query->latest();
+                $query->latest()->first();
             }
         ]);
 

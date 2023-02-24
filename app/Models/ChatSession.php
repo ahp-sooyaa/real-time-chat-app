@@ -13,10 +13,9 @@ class ChatSession extends Model
 
     public $guarded = [];
 
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'creator_id');
-    }
+    protected $casts = [
+        'is_group' => 'boolean'
+    ];
 
     public function users()
     {
@@ -31,15 +30,18 @@ class ChatSession extends Model
     public static function createAsGroup($name, $users)
     {
         $groupChat = ChatSession::create([
-            'creator_id' => Auth::id(),
             'name' => $name,
-            'type' => 'group',
-            'active_at' => now()
+            'is_group' => true,
         ]);
 
-        $memberIds = collect($users)->pluck('id')->merge(Auth::id());
+        $memberIds = collect($users)->pluck('id');
 
-        $groupChat->users()->attach($memberIds);
+        $groupChat->users()->attach([
+            $memberIds,
+            Auth::id() => ['is_owner' => true]
+        ]);
+
+        // need to dispatch newchatsession event
     }
 
     public static function createAsNormal($userId, $token)
@@ -47,9 +49,12 @@ class ChatSession extends Model
         $user = User::find($userId);
 
         if ($user->qrCode->token == $token) { // this condition seem like duplicate because it is already done in chatsessionmembercontroller
-            $chatSession = ChatSession::create(['creator_id' => Auth::id(), 'type' => 'normal']);
+            $chatSession = ChatSession::create();
 
-            $chatSession->users()->attach([$user->id, Auth::id()]);
+            $chatSession->users()->attach([
+                $user->id => ['is_owner' => false],
+                Auth::id() => ['is_owner' => true]
+            ]);
 
             $chatSession->load([
                 'users' => function ($query) use ($user) {

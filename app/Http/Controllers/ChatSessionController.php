@@ -48,7 +48,7 @@ class ChatSessionController extends Controller
 
         return Inertia::render('ChatSession', [
             'messages' => $messages,
-            'chatSession' => $chatSession->load(['creator', 'users']),
+            'chatSession' => $chatSession->load('users'),
         ]);
     }
 
@@ -58,14 +58,14 @@ class ChatSessionController extends Controller
         // 1. creating group chat
         // 2. adding friend with qr code
         // 3. adding friend via search feature
-        if ($request->type == 'group') {
+        if ($request->is_group) {
             $request->validate([
                 'name' => ['required', 'string'],
             ]);
 
             ChatSession::createAsGroup($request->name, $request->users);
 
-            return Redirect::back()->with('success', 'Group created!');
+            return Redirect::back()->with('success_message', 'Group created!');
         }
 
         // token shouldn't require if user add friend from search feature (otherwise I need to pass token when display user in search result)
@@ -76,6 +76,6 @@ class ChatSessionController extends Controller
 
         ChatSession::createAsNormal($request->id, $request->token);
 
-        return Redirect::back()->with('success', 'Contact added!');
+        return Redirect::back()->with('success_message', 'Friend added!');
     }
 }

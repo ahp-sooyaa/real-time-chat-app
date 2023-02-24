@@ -1,11 +1,25 @@
 <script setup>
-import { Link } from "@inertiajs/vue3";
-import { onMounted, onUnmounted, ref } from "vue";
+import { Link, usePage } from "@inertiajs/vue3";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const props = defineProps({ chatSession: Object });
 
-let latestMessage = ref(props.chatSession.messages[0]);
-let newMessageCount = ref(props.chatSession.messages_count);
+let latestMessage = ref(props.chatSession.latest_message);
+let newMessageCount = ref(props.chatSession.new_message_count);
+
+const isNewMessage = computed(() => {
+    return (
+        latestMessage.value &&
+        !latestMessage.value.read_at &&
+        latestMessage.value.sender_id != usePage().props.auth.user.id
+    );
+});
+
+const chatSessionName = computed(() => {
+    return props.chatSession.is_group
+        ? props.chatSession.name
+        : props.chatSession.user.name;
+});
 
 onMounted(() => {
     window.Echo.join("chatsession." + props.chatSession.id).listen(
@@ -28,14 +42,7 @@ onUnmounted(() => {
         class="block bg-gray-100 p-3 rounded-xl"
     >
         <div class="flex space-x-1">
-            <span
-                v-if="
-                    latestMessage &&
-                    !latestMessage.read_at &&
-                    latestMessage.sender_id != $page.props.auth.user.id
-                "
-                class="relative flex h-2 w-2 mt-2"
-            >
+            <span v-if="isNewMessage" class="relative flex h-2 w-2 mt-2">
                 <span
                     class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"
                 ></span>
@@ -46,16 +53,12 @@ onUnmounted(() => {
             <div class="flex-1">
                 <div class="flex justify-between items-start">
                     <h1 class="text-gray-900 font-semibold">
-                        {{
-                            chatSession.type == "group"
-                                ? chatSession.name
-                                : chatSession.users[0].name
-                        }}
+                        {{ chatSessionName }}
                     </h1>
                     <span
                         class="bg-gray-900 rounded-full text-xs text-white px-2 py-0.5"
                     >
-                        {{ newMessageCount ?? "0" }}
+                        {{ newMessageCount ?? 0 }}
                     </span>
                 </div>
                 <div v-if="latestMessage" class="text-gray-500 text-sm">
