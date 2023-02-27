@@ -19,7 +19,7 @@ class ChatSession extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'participants')->withPivot('nickname')->withTimestamps();
+        return $this->belongsToMany(User::class, 'participants')->withPivot('nickname', 'is_owner')->withTimestamps();
     }
 
     public function messages()
@@ -34,12 +34,14 @@ class ChatSession extends Model
             'is_group' => true,
         ]);
 
-        $memberIds = collect($users)->pluck('id');
+        $memberIds = collect($users)->mapWithKeys(function (array $item, int $key) {
+            return [$item['id'] => ['is_owner' => false]];
+        });
 
-        $groupChat->users()->attach([
-            $memberIds,
-            Auth::id() => ['is_owner' => true]
-        ]);
+        $memberIds[Auth::id()] = ['is_owner' => true];
+        // dd($memberIds);
+
+        $groupChat->users()->attach($memberIds);
 
         // need to dispatch newchatsession event
     }

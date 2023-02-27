@@ -62,7 +62,7 @@ onUnmounted(() => {
                     </span>
                 </div>
                 <div v-if="latestMessage" class="text-gray-500 text-sm">
-                    {{ latestMessage?.content }}
+                    {{ latestMessage.content }}
                 </div>
                 <div v-else class="text-gray-500 text-sm">No message yet!</div>
             </div>

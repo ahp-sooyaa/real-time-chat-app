@@ -2,6 +2,8 @@
 
 namespace App\Events;
 
+use App\Http\Resources\MessageResource;
+use App\Models\Participant;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -33,5 +35,19 @@ class MessageSent implements ShouldBroadcast
     public function broadcastOn()
     {
         return new PresenceChannel('chatsession.' . $this->message->chat_session_id);
+    }
+
+    public function broadcastWith()
+    {
+        return [
+            'message' => [
+                'sender_id' => auth()->id(),
+                'sender_name' => auth()->user()->name,
+                'sender_nickname' => Participant::where('user_id', auth()->id())->value('nickname'),
+                'content' => $this->message->content,
+                'sent_by' => 'user',
+                'created_at' => now()
+            ]
+        ];
     }
 }

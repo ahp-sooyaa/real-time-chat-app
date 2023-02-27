@@ -1,6 +1,7 @@
 <script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { useForm } from "@inertiajs/vue3";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import GuestLayout from "@/Layouts/GuestLayout.vue";
+import { useForm, Head } from "@inertiajs/vue3";
 
 const props = defineProps({ user: Object, token: String });
 
@@ -15,18 +16,22 @@ const submitForm = () => {
 </script>
 
 <template>
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Add friend
-            </h2>
-        </template>
+    <GuestLayout>
+        <Head title="QR code" />
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <header>
+            <h2 class="text-lg font-medium text-gray-900 mb-3">
+                Add Friend with QR code
+            </h2>
+        </header>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <div
+                    class="inline-block rounded-full w-8 h-8 bg-gray-100 mr-3"
+                ></div>
                 {{ user.name }}
-                <button @click="submitForm">Add</button>
             </div>
+            <PrimaryButton @click="submitForm">Add</PrimaryButton>
         </div>
-    </AuthenticatedLayout>
+    </GuestLayout>
 </template>

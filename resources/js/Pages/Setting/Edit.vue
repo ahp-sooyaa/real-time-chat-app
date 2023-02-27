@@ -157,8 +157,14 @@ const closeModal = () => {
                                     </p>
                                 </div>
 
+                                <div
+                                    v-if="member.pivot.is_owner"
+                                    class="ml-auto text-sm text-gray-700 self-start tracking-wide"
+                                >
+                                    owner
+                                </div>
                                 <Link
-                                    v-if="member.id != chatSession.creator_id"
+                                    v-else
                                     :href="
                                         route('chatsession.member.destroy', [
                                             chatSession.id,
@@ -177,12 +183,6 @@ const closeModal = () => {
                                 >
                                     <DangerButton> Kick </DangerButton>
                                 </Link>
-                                <div
-                                    v-else
-                                    class="ml-auto text-sm text-gray-700 self-start tracking-wide"
-                                >
-                                    owner
-                                </div>
                             </div>
                             <UpdateNicknameForm
                                 :member="editingMember"

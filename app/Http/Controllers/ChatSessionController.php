@@ -2,16 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ChatSessionResource;
+use App\Http\Resources\MessageResource;
+use App\Http\Resources\UserResource;
 use Inertia\Inertia;
 use App\Models\ChatSession;
 use App\Models\Message;
 use App\Models\Participant;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 
 class ChatSessionController extends Controller
 {
+    public function index()
+    {
+        return Inertia::render('Chat/Index', [
+            'chatSessions' => ChatSessionResource::collection(Auth::user()->chatSessions)
+        ]);
+    }
+
     public function edit(ChatSession $chatSession)
     {
         return Inertia::render('Setting/Edit', [
@@ -46,9 +57,10 @@ class ChatSessionController extends Controller
             ->where('sender_id', '!=', Auth::id())
             ->update(['read_at' => now()]);
 
-        return Inertia::render('ChatSession', [
-            'messages' => $messages,
-            'chatSession' => $chatSession->load('users'),
+        return Inertia::render('Chat/Show', [
+            'messages' => MessageResource::collection($messages),
+            'chatSession' => ChatSessionResource::make($chatSession)->only('id', 'name', 'is_group'),
+            'participants' => UserResource::collection($chatSession->users)
         ]);
     }
 

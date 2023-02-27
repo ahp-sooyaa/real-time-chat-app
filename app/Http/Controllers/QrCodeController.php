@@ -10,7 +10,7 @@ class QrCodeController extends Controller
 {
     public function store(User $user)
     {
-        QrCode::where('email', $user->email)->delete();
+        $user->qrCode()->delete();
 
         QrCode::generateFor($user);
     }

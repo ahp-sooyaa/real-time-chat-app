@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChatSessionController;
 use App\Http\Controllers\ChatSessionMemberController;
 use App\Http\Controllers\UserController;
+use App\Http\Resources\ChatSessionCollection;
 use App\Http\Resources\ChatSessionResource;
 use App\Models\ChatSession;
 
@@ -33,36 +34,15 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/chats', function () {
-    // dd(
-    //     Auth::user()->chatSessions()
-    //         ->with('messages')
-    //         ->get()
-    //         // ->toArray()
-    //         ->map
-    //         ->only('name', 'messages')
-    // );
-    return Inertia::render('Dashboard', [
-        'chatSessions' => ChatSessionResource::collection(Auth::user()->chatSessions)
-        // 'chatSessions' => Auth::user()->chatSessions()
-        //     ->with('messages')
-        //     ->get()
-        // 'chatSessions' => Auth::user()->loadChatSessions()
-    ]);
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::middleware(['auth', 'verified'])->group(function () {
+    // add friend, create group
+    Route::get('/chats', [ChatSessionController::class, 'index'])->name('dashboard');
+    Route::post('/chat-session', [ChatSessionController::class, 'store'])->name('chatsession.store');
+    Route::get('/chat-session/{chatSession}', [ChatSessionController::class, 'show'])->name('chatsession.show');
 
     // display route to add friend with qr code or link
     Route::get('/users/{user}/qr-code/regenerate', [QrCodeController::class, 'store'])->name('qrCode.regenerate');
     Route::get('/users/{user}/qr-code/{token}', [ChatSessionMemberController::class, 'addFriendWithQrCodeOrLink'])->name('friend.add');
-
-    // add friend, create group
-    Route::post('/chat-session', [ChatSessionController::class, 'store'])->name('chatsession.store');
-    Route::get('/chat-session/{chatSession}', [ChatSessionController::class, 'show'])->name('chatsession.show');
 
     // send message
     Route::post('/message', [MessageController::class, 'store'])->name('message.store');
@@ -78,6 +58,12 @@ Route::middleware('auth')->group(function () {
 
     // search friend to add in group
     Route::get('/search', [UserController::class, 'index'])->name('user.index');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__ . '/auth.php';
