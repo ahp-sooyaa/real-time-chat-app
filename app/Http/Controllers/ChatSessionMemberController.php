@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Inertia\Inertia;
 use App\Models\QrCode;
 use App\Models\Message;
 use App\Events\MessageSent;
 use App\Models\ChatSession;
+use App\Models\Participant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Events\NewChatSessionCreated;
 use Illuminate\Support\Facades\Redirect;
-use Inertia\Inertia;
 
 class ChatSessionMemberController extends Controller
 {
@@ -40,6 +41,8 @@ class ChatSessionMemberController extends Controller
 
         $chatSession->users()->attach($member->id);
 
+        $participant = Participant::where('user_id', auth()->id())->where('chat_session_id', $chatSession->id)->first();
+
         $chatSession->load([
             'users' => function ($query) use ($member) {
                 $query->where('name', '!=', $member->name);
@@ -50,8 +53,8 @@ class ChatSessionMemberController extends Controller
         ]);
 
         $chatSession->loadCount([
-            'messages' => function ($query) use ($member) {
-                $query->where('read_at', null)->where('sender_id', '!=', $member->id);
+            'messages' => function ($query) use ($member, $participant) {
+                $query->where('updated_at', '>', $participant->last_read_at ?? $participant->created_at);
             }
         ]);
 

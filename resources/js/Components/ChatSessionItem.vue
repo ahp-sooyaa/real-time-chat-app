@@ -1,19 +1,11 @@
 <script setup>
-import { Link, usePage } from "@inertiajs/vue3";
+import { Link } from "@inertiajs/vue3";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const props = defineProps({ chatSession: Object });
 
 let latestMessage = ref(props.chatSession.latest_message);
 let newMessageCount = ref(props.chatSession.new_message_count);
-
-const isNewMessage = computed(() => {
-    return (
-        latestMessage.value &&
-        !latestMessage.value.read_at &&
-        latestMessage.value.sender_id != usePage().props.auth.user.id
-    );
-});
 
 const chatSessionName = computed(() => {
     return props.chatSession.is_group
@@ -42,7 +34,7 @@ onUnmounted(() => {
         class="block bg-gray-100 p-3 rounded-xl"
     >
         <div class="flex space-x-1">
-            <span v-if="isNewMessage" class="relative flex h-2 w-2 mt-2">
+            <span v-if="newMessageCount" class="relative flex h-2 w-2 mt-2">
                 <span
                     class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"
                 ></span>

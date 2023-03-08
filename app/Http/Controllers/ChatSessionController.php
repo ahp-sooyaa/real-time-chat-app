@@ -18,6 +18,28 @@ class ChatSessionController extends Controller
 {
     public function index()
     {
+        // trying to refactor
+        // $chatSessions = ChatSession::query()
+        //     ->select('id', 'name as group_name', 'is_group')
+        //     ->where('is_group', true)
+        //     ->whereHas('users', function ($query) {
+        //         $query->where('users.id', auth()->id());
+        //     })
+        //     ->addSelect([
+        //         'latest_message' => Message::select('content')
+        //             ->whereColumn('chat_session_id', 'chat_sessions.id')
+        //             ->latest()
+        //             ->take(1)
+        //     ])
+        //     ->get();
+
+        // $privateChats = ChatSession::query()
+        //     ->select('id', 'name as group_name', 'is_group')
+        //     ->where('is_group', false)
+        //     ->whereHas('users', function ($query) {
+        //         $query->where('users.id', auth()->id());
+        //     });
+
         return Inertia::render('Chat/Index', [
             'chatSessions' => ChatSessionResource::collection(Auth::user()->chatSessions)
         ]);
@@ -52,10 +74,10 @@ class ChatSessionController extends Controller
             ->with('user')
             ->get();
 
-        Message::query()
+        Participant::query()
             ->where('chat_session_id', $chatSession->id)
-            ->where('sender_id', '!=', Auth::id())
-            ->update(['read_at' => now()]);
+            ->where('user_id', Auth::id())
+            ->update(['last_read_at' => now()]);
 
         return Inertia::render('Chat/Show', [
             'messages' => MessageResource::collection($messages),
@@ -83,7 +105,7 @@ class ChatSessionController extends Controller
         // token shouldn't require if user add friend from search feature (otherwise I need to pass token when display user in search result)
         $request->validate([
             'id' => 'required|exists:users',
-            'token' => 'required', // need to use something like required if rule (require if user turn off allow other to add me as friend)
+            'token' => 'required', // need to use something like 'required if' rule (require if user turn off allow other to add me as friend)
         ]);
 
         ChatSession::createAsNormal($request->id, $request->token);

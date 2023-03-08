@@ -1,7 +1,6 @@
 <script setup>
 import { useForm, usePage } from "@inertiajs/vue3";
 import { ref, onMounted } from "vue";
-import moment from "moment";
 import throttle from "lodash/throttle";
 
 const props = defineProps({ chatSessionId: Number });
@@ -76,6 +75,8 @@ onMounted(() => {
                 <button
                     class="flex items-center ml-auto bg-gray-900 text-white text-sm px-5 py-2 rounded"
                     type="submit"
+                    :class="{ 'opacity-25': messageForm.processing }"
+                    :disabled="messageForm.processing"
                 >
                     Sent
                     <svg

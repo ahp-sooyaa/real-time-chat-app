@@ -39,11 +39,16 @@ class MessageSent implements ShouldBroadcast
 
     public function broadcastWith()
     {
+        $nickname = Participant::query()
+            ->where('user_id', auth()->id())
+            ->where('chat_session_id', $this->message->chat_session_id)
+            ->value('nickname');
+
         return [
             'message' => [
                 'sender_id' => auth()->id(),
                 'sender_name' => auth()->user()->name,
-                'sender_nickname' => Participant::where('user_id', auth()->id())->value('nickname'),
+                'sender_nickname' => $nickname,
                 'content' => $this->message->content,
                 'sent_by' => 'user',
                 'created_at' => now()

@@ -39,18 +39,17 @@ class ChatSession extends Model
         });
 
         $memberIds[Auth::id()] = ['is_owner' => true];
-        // dd($memberIds);
 
         $groupChat->users()->attach($memberIds);
 
-        // need to dispatch newchatsession event
+        NewChatSessionCreated::dispatch($groupChat);
     }
 
     public static function createAsNormal($userId, $token)
     {
         $user = User::find($userId);
 
-        if ($user->qrCode->token == $token) { // this condition seem like duplicate because it is already done in chatsessionmembercontroller
+        if ($user->qrCode->token == $token) { // this condition seem like duplicate because it is already done in chatsession member controller
             $chatSession = ChatSession::create();
 
             $chatSession->users()->attach([
@@ -67,9 +66,12 @@ class ChatSession extends Model
                 }
             ]);
 
+            // this message count is not require because first time added friend doesn't have any message yet.
+            $participant = Participant::where('user_id', auth()->id())->where('chat_session_id', $chatSession->id)->first();
+
             $chatSession->loadCount([
-                'messages' => function ($query) use ($user) {
-                    $query->where('read_at', null)->where('sender_id', '!=', $user->id);
+                'messages' => function ($query) use ($user, $participant) {
+                    $query->where('updated_at', '>', $participant->last_read_at ?? $participant->created_at)->where('sender_id', '!=', $user->id);
                 }
             ]);
 
