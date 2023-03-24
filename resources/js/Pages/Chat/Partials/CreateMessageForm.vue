@@ -1,31 +1,35 @@
 <script setup>
-import { useForm, usePage } from "@inertiajs/vue3";
+import { usePage, router } from "@inertiajs/vue3";
 import { ref, onMounted } from "vue";
 import throttle from "lodash/throttle";
 
 const props = defineProps({ chatSessionId: Number });
-const emit = defineEmits("sent");
+// const emit = defineEmits(["sent"]);
 
 const loading = ref(false);
 const timer = ref(null);
 const typingParticipants = ref([]);
-
-const messageForm = useForm({
-    message: "",
-    chatSessionId: props.chatSessionId,
-});
+const message = ref("");
 
 const sentMessage = () => {
-    if (loading.value || !messageForm.message) return;
+    if (loading.value || !message.value.trim()) return;
 
-    emit("sent", messageForm.message);
-
-    messageForm.post(route("message.store"), {
-        preserveScroll: true,
-        onStart: () => (loading.value = true),
-        onFinish: () => (loading.value = false),
-        onSuccess: () => messageForm.reset("message"),
-    });
+    loading.value = true;
+    router.post(
+        route("message.store"),
+        {
+            message: message.value,
+            chatSessionId: props.chatSessionId,
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                // emit("sent", response.data.message);
+                message.value = "";
+                loading.value = false;
+            },
+        }
+    );
 };
 
 const typing = throttle(() => {
@@ -65,7 +69,7 @@ onMounted(() => {
         <div class="mt-6 border-t pt-3">
             <form @submit.prevent="sentMessage" class="ml-auto">
                 <input
-                    v-model="messageForm.message"
+                    v-model="message"
                     type="text"
                     placeholder="Type something..."
                     class="border-transparent rounded-lg text-sm text-gray-500 -mt-3 focus:border-transparent focus:ring-0 px-0 w-full"
@@ -75,8 +79,8 @@ onMounted(() => {
                 <button
                     class="flex items-center ml-auto bg-gray-900 text-white text-sm px-5 py-2 rounded"
                     type="submit"
-                    :class="{ 'opacity-25': messageForm.processing }"
-                    :disabled="messageForm.processing"
+                    :class="{ 'opacity-25': loading }"
+                    :disabled="loading"
                 >
                     Sent
                     <svg

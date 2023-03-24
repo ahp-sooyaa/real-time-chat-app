@@ -64,6 +64,7 @@ class ChatSessionController extends Controller
         abort_if(!$chatSession->users->contains(Auth::id()), 404);
 
         $messages = Message::query()
+            ->withTrashed()
             ->where('chat_session_id', $chatSession->id)
             ->addSelect([
                 'nickname' => Participant::select('nickname')
@@ -72,6 +73,7 @@ class ChatSessionController extends Controller
                     ->take(1)
             ])
             ->with('user')
+            ->orderBy('created_at')
             ->get();
 
         Participant::query()

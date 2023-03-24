@@ -2,18 +2,15 @@
 
 namespace App\Events;
 
-use App\Http\Resources\MessageResource;
-use App\Models\Participant;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSent implements ShouldBroadcast
+class MessageDeleted implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -35,25 +32,5 @@ class MessageSent implements ShouldBroadcast
     public function broadcastOn()
     {
         return new PresenceChannel('chatsession.' . $this->message->chat_session_id);
-    }
-
-    public function broadcastWith()
-    {
-        $nickname = Participant::query()
-            ->where('user_id', auth()->id())
-            ->where('chat_session_id', $this->message->chat_session_id)
-            ->value('nickname');
-
-        return [
-            'message' => [
-                'sender_id' => auth()->id(),
-                'sender_name' => auth()->user()->name,
-                'sender_nickname' => $nickname,
-                'content' => $this->message->content,
-                'sent_by' => 'user',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
-        ];
     }
 }

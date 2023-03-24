@@ -15,12 +15,15 @@ class MessageResource extends JsonResource
     public function toArray($request)
     {
         return [
+            'id' => $this->id,
             'sender_id' => $this->sender_id,
             'sender_name' => $this->user->name,
             'sender_nickname' => $this->nickname,
             'content' => $this->content,
             'sent_by' => $this->sent_by,
+            'deleted_at' => $this->deleted_at,
             'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 

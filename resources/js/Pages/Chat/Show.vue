@@ -2,9 +2,11 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import Messages from "./Partials/Messages.vue";
+import Message from "./Partials/Message.vue";
+import CreateMessageForm from "./Partials/CreateMessageForm.vue";
 import Dropdown from "@/Components/Dropdown.vue";
 import { Head, router, useForm, usePage } from "@inertiajs/vue3";
-import { onMounted, onUnmounted, computed, reactive, ref } from "vue";
+import { onMounted, onUnmounted, computed, ref } from "vue";
 
 const props = defineProps({
     messages: Object,
@@ -12,9 +14,9 @@ const props = defineProps({
     participants: Object,
 });
 
-let activeParticipants = ref([]);
+// const messages = ref(props.messages);
 
-let messages = reactive(props.messages);
+let activeParticipants = ref([]);
 
 const memberForm = useForm({
     email: "",
@@ -27,10 +29,6 @@ const addMember = () => {
         onSuccess: () => memberForm.reset("email"),
     });
 };
-
-function markAsRead() {
-    router.reload();
-}
 
 const chatSessionName = computed(() => {
     if (props.chatSession.is_group) {
@@ -50,6 +48,17 @@ const isActive = (participant) => {
     );
 };
 
+// const addNewMessage = (message) => {
+//     messages.value.push(message);
+// };
+
+// const removeDeletedMessage = (message) => {
+//     messages.value.splice(
+//         messages.value.map((message) => message.id).indexOf(message.id),
+//         1
+//     );
+// };
+
 onMounted(() => {
     window.Echo.join("chatsession." + props.chatSession.id)
         .here((users) => {
@@ -64,10 +73,25 @@ onMounted(() => {
                 1
             );
         })
-        .listen("MessageSent", (e) => {
-            messages.push(e.message);
+        .listen("MessageSent", ({ message }) => {
+            props.messages.push(message);
 
-            markAsRead();
+            // mark as read
+            router.reload();
+        })
+        .listen("MessageUpdated", ({ message }) => {
+            props.messages.map((originalMessage) => {
+                if (originalMessage.id == message.id) {
+                    originalMessage.content = message.content;
+                }
+            });
+        })
+        .listen("MessageDeleted", ({ message }) => {
+            props.messages.map((originalMessage) => {
+                if (originalMessage.id == message.id) {
+                    originalMessage.content = `${message.sender_name} deleted message`;
+                }
+            });
         });
 });
 
@@ -210,10 +234,26 @@ onUnmounted(() => {
                     class="flex-1 bg-white overflow-hidden shadow-sm sm:rounded-lg mt-3"
                 >
                     <div class="flex flex-col p-6 text-gray-900">
-                        <Messages
+                        <!-- <Messages
                             :messages="messages"
                             :chat-session="chatSession"
-                        ></Messages>
+                        ></Messages> -->
+                        <div v-if="messages.length">
+                            <Message
+                                v-for="(message, index) in messages"
+                                :key="index"
+                                :initial-message="message.content"
+                                :message="message"
+                                class="[&:not(:first-child)]:mt-3"
+                            />
+                        </div>
+                        <div v-else class="text-center text-sm text-gray-400">
+                            No message yet
+                        </div>
+
+                        <CreateMessageForm
+                            :chat-session-id="chatSession.id"
+                        ></CreateMessageForm>
                     </div>
                 </div>
             </div>

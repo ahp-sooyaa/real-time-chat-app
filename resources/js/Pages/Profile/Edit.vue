@@ -49,7 +49,7 @@ const regenerate = () => {
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
                 <button
                     @click="showQrCode"
-                    class="inline-flex bg-white px-4 rounded-full py-1 shadow text-sm text-gray-900"
+                    class="inline-flex bg-white px-4 sm:px-8 rounded-lg py-2 shadow text-sm text-gray-900"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -57,7 +57,7 @@ const regenerate = () => {
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
-                        class="w-5 h-5 mr-1"
+                        class="w-5 h-5 mr-2"
                     >
                         <path
                             stroke-linecap="round"

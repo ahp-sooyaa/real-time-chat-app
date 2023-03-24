@@ -49,7 +49,7 @@ class QrCode extends Model
         $result = $writer->write($qrCode);
 
         // Validate the result
-        $writer->validateResult($result, $link);
+        // $writer->validateResult($result, $link);
 
         // make storage directory for qr codes
         Storage::makeDirectory('public/qr-codes');

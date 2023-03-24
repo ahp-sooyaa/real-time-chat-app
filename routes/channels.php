@@ -1,8 +1,9 @@
 <?php
 
+use App\Models\Message;
 use App\Models\ChatSession;
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Broadcast;
 
 /*
 |--------------------------------------------------------------------------
