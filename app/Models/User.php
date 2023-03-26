@@ -49,7 +49,7 @@ class User extends Authenticatable
      */
     public function qrCode()
     {
-        return $this->hasOne(Qrcode::class);
+        return $this->hasOne(QrCode::class);
     }
 
     public function chatSessions()
