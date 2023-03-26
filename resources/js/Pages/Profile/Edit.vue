@@ -3,7 +3,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import DeleteUserForm from "./Partials/DeleteUserForm.vue";
 import UpdatePasswordForm from "./Partials/UpdatePasswordForm.vue";
 import UpdateProfileInformationForm from "./Partials/UpdateProfileInformationForm.vue";
-import Modal from "@/components/Modal.vue";
+import Modal from "@/Components/Modal.vue";
 import { Head, router, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 

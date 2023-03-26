@@ -1,7 +1,6 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
-import Messages from "./Partials/Messages.vue";
 import Message from "./Partials/Message.vue";
 import CreateMessageForm from "./Partials/CreateMessageForm.vue";
 import Dropdown from "@/Components/Dropdown.vue";
@@ -14,9 +13,7 @@ const props = defineProps({
     participants: Object,
 });
 
-// const messages = ref(props.messages);
-
-let activeParticipants = ref([]);
+const activeParticipants = ref([]);
 
 const memberForm = useForm({
     email: "",
@@ -48,17 +45,6 @@ const isActive = (participant) => {
     );
 };
 
-// const addNewMessage = (message) => {
-//     messages.value.push(message);
-// };
-
-// const removeDeletedMessage = (message) => {
-//     messages.value.splice(
-//         messages.value.map((message) => message.id).indexOf(message.id),
-//         1
-//     );
-// };
-
 onMounted(() => {
     window.Echo.join("chatsession." + props.chatSession.id)
         .here((users) => {
@@ -76,13 +62,14 @@ onMounted(() => {
         .listen("MessageSent", ({ message }) => {
             props.messages.push(message);
 
-            // mark as read
+            // mark as read (!need to think about this more)
             router.reload();
         })
         .listen("MessageUpdated", ({ message }) => {
             props.messages.map((originalMessage) => {
                 if (originalMessage.id == message.id) {
                     originalMessage.content = message.content;
+                    originalMessage.updated_at = message.updated_at;
                 }
             });
         })
@@ -90,6 +77,8 @@ onMounted(() => {
             props.messages.map((originalMessage) => {
                 if (originalMessage.id == message.id) {
                     originalMessage.content = `${message.sender_name} deleted message`;
+                    originalMessage.updated_at = message.updated_at;
+                    originalMessage.deleted_at = message.deleted_at;
                 }
             });
         });
@@ -234,15 +223,10 @@ onUnmounted(() => {
                     class="flex-1 bg-white overflow-hidden shadow-sm sm:rounded-lg mt-3"
                 >
                     <div class="flex flex-col p-6 text-gray-900">
-                        <!-- <Messages
-                            :messages="messages"
-                            :chat-session="chatSession"
-                        ></Messages> -->
                         <div v-if="messages.length">
                             <Message
                                 v-for="(message, index) in messages"
                                 :key="index"
-                                :initial-message="message.content"
                                 :message="message"
                                 class="[&:not(:first-child)]:mt-3"
                             />

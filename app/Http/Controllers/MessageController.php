@@ -26,26 +26,25 @@ class MessageController extends Controller
             'content' => $request->message
         ]);
 
-        MessageSent::dispatch($message->load('user'));
+        MessageSent::dispatch(MessageResource::make($message));
 
         return to_route('chatsession.show', $request->chatSessionId);
-        // Log::debug($message);
-        // Log::debug($message->fresh());
-        // return response()->json(['message' => MessageResource::make($message->fresh())]);
     }
 
     public function update(Message $message, Request $request)
     {
         $message->update(['content' => $request->content]);
 
-        MessageUpdated::dispatch($message);
+        MessageUpdated::dispatch(MessageResource::make($message));
+
+        return to_route('chatsession.show', $message->chat_session_id);
     }
 
     public function destroy(Message $message)
     {
-        MessageDeleted::dispatch(MessageResource::make($message));
-
         $message->delete();
+        
+        MessageDeleted::dispatch(MessageResource::make($message));
 
         return to_route('chatsession.show', $message->chat_session_id);
     }
