@@ -93,7 +93,7 @@ onMounted(() => {
                                 Groups
                             </h1>
                             <button
-                                class="flex items-center pr-2 bg-gray-900 text-white rounded-md text-sm"
+                                class="flex items-center bg-gray-900 text-white rounded-md text-sm"
                                 @click="showCreateGroupFrom"
                             >
                                 <svg
@@ -110,7 +110,6 @@ onMounted(() => {
                                         d="M12 6v12m6-6H6"
                                     />
                                 </svg>
-                                <span class="text-sm">Create</span>
                             </button>
                             <Modal
                                 :show="showingCreateGroupForm"

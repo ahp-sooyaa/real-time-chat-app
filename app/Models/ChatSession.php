@@ -45,39 +45,38 @@ class ChatSession extends Model
         NewChatSessionCreated::dispatch($groupChat);
     }
 
-    public static function createAsNormal($userId, $token)
+    public static function createAsNormal(User $user)
     {
-        $user = User::find($userId);
+        $chatSession = ChatSession::create();
 
-        if ($user->qrCode->token == $token) { // this condition seem like duplicate because it is already done in chatsession member controller
-            $chatSession = ChatSession::create();
+        $chatSession->users()->attach([
+            $user->id => ['is_owner' => false],
+            Auth::id() => ['is_owner' => true]
+        ]);
 
-            $chatSession->users()->attach([
-                $user->id => ['is_owner' => false],
-                Auth::id() => ['is_owner' => true]
-            ]);
+        $chatSession->load([
+            'users' => function ($query) use ($user) {
+                $query->where('name', '!=', $user->name);
+            },
+            'messages' => function ($query) {
+                $query->latest();
+            }
+        ]);
 
-            $chatSession->load([
-                'users' => function ($query) use ($user) {
-                    $query->where('name', '!=', $user->name);
-                },
-                'messages' => function ($query) {
-                    $query->latest();
-                }
-            ]);
+        // this message count is not require because first time added friend doesn't have any message yet.
+        $participant = Participant::query()
+            ->where('user_id', auth()->id())
+            ->where('chat_session_id', $chatSession->id)
+            ->first();
 
-            // this message count is not require because first time added friend doesn't have any message yet.
-            $participant = Participant::where('user_id', auth()->id())->where('chat_session_id', $chatSession->id)->first();
+        $chatSession->loadCount([
+            'messages' => function ($query) use ($user, $participant) {
+                $query->where('updated_at', '>', $participant->last_read_at ?? $participant->created_at)->where('sender_id', '!=', $user->id);
+            }
+        ]);
 
-            $chatSession->loadCount([
-                'messages' => function ($query) use ($user, $participant) {
-                    $query->where('updated_at', '>', $participant->last_read_at ?? $participant->created_at)->where('sender_id', '!=', $user->id);
-                }
-            ]);
+        NewChatSessionCreated::dispatch($chatSession);
 
-            NewChatSessionCreated::dispatch($chatSession);
-        } else {
-            return back()->withErrors('Your token mismatch');
-        }
+        return $chatSession;
     }
 }

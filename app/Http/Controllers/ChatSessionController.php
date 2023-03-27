@@ -110,8 +110,22 @@ class ChatSessionController extends Controller
             'token' => 'required', // need to use something like 'required if' rule (require if user turn off allow other to add me as friend)
         ]);
 
-        ChatSession::createAsNormal($request->id, $request->token);
+        if ($request->id == auth()->id()) {
+            return Redirect::back()->with('error_message', 'You can\'t add yourself :)');
+        }
 
-        return Redirect::back()->with('success_message', 'Friend added!');
+        $user = User::find($request->id);
+        $connectedUsers = User::whereHas('chatSessions', function($query) {
+            $query->where('is_group', false);
+        })->get();
+
+        if ($user->qrCode->token == $request->token && !$connectedUsers->contains($user->id)) {
+            $chatSession = ChatSession::createAsNormal($user);
+            
+            return Redirect::route('chatsession.show', $chatSession->id)->with('success_message', 'Friend added!');
+        }
+
+
+        return Redirect::back()->with('error_message', 'Already added as a friend!');
     }
 }
