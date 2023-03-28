@@ -155,40 +155,16 @@ onUnmounted(() => {
                         </template>
                     </Dropdown>
                 </div>
-                
-                <form
-                    v-if="chatSession.is_group"
-                    @submit.prevent="addMember"
-                    class="ml-auto"
-                >
-                    <input
-                        v-model="memberForm.email"
-                        type="email"
-                        placeholder="email"
-                        class="border-gray-300 rounded-md mr-2 text-sm"
-                    />
-                    <button
-                        class="bg-gray-900 text-white px-3 py-2 rounded-md text-sm"
-                    >
-                        Add Member
-                    </button>
-                    <div
-                        v-if="memberForm.errors.email"
-                        class="text-sm mt-1 text-red-600"
-                    >
-                        {{ memberForm.errors.email }}
-                    </div>
-                </form>
             </div>
         </template>
 
         <div class="py-12">
             <div
-                class="flex items-start space-x-5 max-w-7xl mx-auto sm:px-6 lg:px-8"
+                class="flex flex-col lg:flex-row lg:space-x-5 items-start max-w-7xl mx-auto sm:px-6 lg:px-8"
             >
                 <div
                     v-if="chatSession.is_group"
-                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg mt-3 p-6"
+                    class="bg-white overflow-hidden shadow-sm sm:rounded-lg mt-3 p-6 w-full lg:w-1/3"
                 >
                     <h1 class="text-gray-900">Group members</h1>
                     <div
@@ -201,10 +177,36 @@ onUnmounted(() => {
                         ></span
                         >{{ participant.nickname ?? participant.name }}
                     </div>
+
+                    <form
+                        v-if="chatSession.is_group"
+                        @submit.prevent="addMember"
+                        class="flex items-start space-x-2 ml-auto mt-5"
+                    >
+                        <div class="flex-1">
+                            <input
+                                v-model="memberForm.email"
+                                type="email"
+                                placeholder="email"
+                                class="w-full border-gray-300 rounded-md mr-2 text-sm"
+                            />
+                            <div
+                                v-if="memberForm.errors.email"
+                                class="text-sm mt-1 text-red-600"
+                            >
+                                {{ memberForm.errors.email }}
+                            </div>
+                        </div>
+                        <button
+                            class="bg-gray-900 text-white px-3 py-2 rounded-md text-sm"
+                        >
+                            Add Member
+                        </button>
+                    </form>
                 </div>
 
                 <div
-                    class="flex-1 bg-white overflow-hidden shadow-sm sm:rounded-lg mt-3"
+                    class="flex-1 bg-white overflow-hidden shadow-sm sm:rounded-lg mt-3 w-full lg:w-2/3"
                 >
                     <div class="flex flex-col p-6 text-gray-900">
                         <div v-if="messages.length">

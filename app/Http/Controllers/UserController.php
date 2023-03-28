@@ -17,6 +17,7 @@ class UserController extends Controller
                 return $query->where('is_group', false);
             })
             ->where('id', '!=', Auth::id())
+            ->limit(5)
             ->get();
 
         return response()->json(['users' => $users]);

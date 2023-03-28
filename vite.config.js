@@ -7,7 +7,7 @@ export default defineConfig({
         laravel({
             input: "resources/js/app.js",
             refresh: true,
-            valetTls: 'real-time-chat-app.test',
+            // valetTls: 'real-time-chat-app.test',
         }),
         vue({
             template: {

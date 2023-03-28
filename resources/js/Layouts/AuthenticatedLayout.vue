@@ -29,7 +29,7 @@ const showingNavigationDropdown = ref(false);
                 $page.props.flash.error_message
             }}
         </div>
-        
+
         <div class="min-h-screen bg-gray-100">
             <nav class="bg-white border-b border-gray-100">
                 <!-- Primary Navigation Menu -->
@@ -160,7 +160,7 @@ const showingNavigationDropdown = ref(false);
                             :href="route('dashboard')"
                             :active="route().current('dashboard')"
                         >
-                            Dashboard
+                            Chats
                         </ResponsiveNavLink>
                     </div>
 

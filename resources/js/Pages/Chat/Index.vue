@@ -142,7 +142,7 @@ onMounted(() => {
                                             ref="groupNameInput"
                                             v-model="form.name"
                                             type="text"
-                                            class="relative z-20 mt-1 block w-3/4"
+                                            class="relative z-20 mt-1 block w-full lg:w-3/4"
                                             placeholder="Group Name"
                                         />
 

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import TextInput from "./TextInput.vue";
 
 const props = defineProps({ selectedMembers: Object });
@@ -7,11 +7,36 @@ const props = defineProps({ selectedMembers: Object });
 const search = ref("");
 const searchResults = ref([]);
 const show = ref(false);
+const hightlightIndex = ref(0);
 
 const isExists = (member) => {
     return props.selectedMembers.some(
         (selectedMember) => selectedMember == member
     );
+};
+
+const hightlightDown = () => {
+    if (hightlightIndex.value == searchResults.value.length - 1) {
+        hightlightIndex.value = 0;
+        return;
+    }
+
+    hightlightIndex.value++;
+};
+
+const hightlightUp = () => {
+    if (hightlightIndex.value == 0) {
+        hightlightIndex.value = searchResults.value.length - 1;
+        return;
+    }
+
+    hightlightIndex.value--;
+};
+
+const selectHightlightedMember = () => {
+    if (isExists(member)) return;
+
+    props.selectedMembers.push(searchResults.value[hightlightIndex.value]);
 };
 
 const selectMember = (member) => {
@@ -34,6 +59,12 @@ watch(
             });
     }
 );
+
+onMounted(() => {
+    axios.get(route("user.index")).then((response) => {
+        searchResults.value = response.data.users;
+    });
+});
 </script>
 
 <template>
@@ -43,7 +74,7 @@ watch(
             @click="show = false"
             class="absolute inset-0 z-10"
         ></div>
-        <div class="w-3/4">
+        <div class="w-full lg:w-3/4">
             <div class="flex space-x-2">
                 <div
                     v-for="selectedMember in selectedMembers"
@@ -68,19 +99,23 @@ watch(
                 v-model="search"
                 type="text"
                 class="relative z-20 w-full mt-3"
-                placeholder="members"
+                placeholder="Add friends to group"
                 @focus="show = true"
+                @keydown.arrow-up.prevent="hightlightUp"
+                @keydown.arrow-down.prevent="hightlightDown"
+                @keydown.enter.prevent="selectHightlightedMember"
             />
             <div
-                v-show="search && show"
+                v-show="show"
                 class="relative z-20 bg-white shadow py-2 text-sm -mt-1 border rounded-b-md"
             >
                 <div v-if="searchResults.length">
                     <div
-                        v-for="searchResult in searchResults"
+                        v-for="(searchResult, index) in searchResults"
                         :key="searchResult.id"
                         @click="selectMember(searchResult)"
                         class="flex justify-between hover:bg-indigo-100 text-gray-900 px-3 py-2 cursor-pointer"
+                        :class="{ 'bg-indigo-100': index == hightlightIndex }"
                     >
                         {{ searchResult.name }}
                         <svg
@@ -103,6 +138,57 @@ watch(
                     </div>
                 </div>
                 <div v-else class="px-3 py-2 text-gray-500">no result</div>
+                <div class="hidden md:flex space-x-5 px-3 pt-2">
+                    <div class="flex space-x-2">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="w-5 h-5 transform rotate-180 text-gray-900"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3"
+                            />
+                        </svg>
+                        <p class="text-gray-500">to select</p>
+                    </div>
+                    <div class="flex">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="w-5 h-5 text-gray-900"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75"
+                            />
+                        </svg>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="w-5 h-5 text-gray-900"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75"
+                            />
+                        </svg>
+
+                        <p class="text-gray-500 ml-2">to navigate</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
