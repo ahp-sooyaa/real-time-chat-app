@@ -15,7 +15,7 @@ defineProps({
     <div
         class="relative grid place-content-center min-h-screen bg-gray-100 dark:bg-gray-900 sm:items-center sm:pt-0"
     >
-        <div class="text-gray-100 max-w-[16rem] text-center">
+        <div class="text-gray-900 dark:text-gray-100 max-w-[16rem] text-center">
             <h1>👋 Welcome to the demo site of 'real-time-chat-app'</h1>
         </div>
         <div v-if="canLogin" class="mx-auto px-6 py-4">

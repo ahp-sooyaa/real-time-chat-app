@@ -90,7 +90,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head :title="chatSessionName" />
 
     <AuthenticatedLayout>
         <template #header>

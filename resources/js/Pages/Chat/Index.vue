@@ -58,7 +58,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head title="Chats" />
+    <Head title="Home" />
 
     <AuthenticatedLayout>
         <template #header>

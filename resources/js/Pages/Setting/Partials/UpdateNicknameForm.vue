@@ -47,7 +47,7 @@ const closeModal = () => {
                     ref="groupNameInput"
                     v-model="form.nickname"
                     type="text"
-                    class="mt-1 block w-3/4"
+                    class="mt-1 block w-full lg:w-3/4"
                     :placeholder="member.name + ' nickname'"
                 />
 
